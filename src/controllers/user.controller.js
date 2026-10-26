@@ -128,7 +128,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new Error("REFRESH_TOKEN_SECRET is not configured");
         }
 
-        decodedToken = jwt.verify(-
+        decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         );

@@ -47,6 +47,15 @@ test("registration requires an avatar upload", async () => {
     assert.equal((await response.json()).message, "Avatar image is required");
 });
 
+test("refresh-token endpoint rejects requests without a refresh cookie", async () => {
+    const response = await fetch(`${baseUrl}/api/v1/users/refresh-token`, {
+        method: "POST"
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal((await response.json()).message, "Refresh token is required");
+});
+
 test("registration removes uploaded files when required fields are missing", async () => {
     const form = new FormData();
     form.set("avatar", new Blob(["avatar"]), "avatar.png");
