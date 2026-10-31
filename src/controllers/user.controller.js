@@ -3,7 +3,11 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+  getCloudinaryPublicIdFromUrl,
+} from "../utils/cloudinary.js";
 import { rm } from "node:fs/promises";
 import { clearAuthCookies, setAuthCookies } from "../utils/authCookies.js";
 
@@ -50,6 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
       fullName: fullName.trim(),
       password,
       avatar: avatar.secure_url,
+      avatarPublicId: avatar.public_id,
     });
 
     const accessToken = user.generateAccessToken();
@@ -241,18 +246,30 @@ const updateCurrentUserAvatar = asyncHandler(async (req, res) => {
 
     const avatar = await uploadOnCloudinary(req.file.path);
 
-    if (!avatar?.secure_url) {
+    if (!avatar?.secure_url || !avatar.public_id) {
       throw new ApiError(502, "Avatar upload failed");
     }
 
+    const previousAvatarPublicId =
+      req.user.avatarPublicId ?? getCloudinaryPublicIdFromUrl(req.user.avatar);
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: { avatar: avatar.secure_url } },
+      {
+        $set: {
+          avatar: avatar.secure_url,
+          avatarPublicId: avatar.public_id,
+        },
+      },
       { new: true, runValidators: true },
     );
 
     if (!user) {
       throw new ApiError(404, "User not found");
+    }
+
+    if (previousAvatarPublicId && previousAvatarPublicId !== avatar.public_id) {
+      await deleteFromCloudinary(previousAvatarPublicId);
     }
 
     const userData = {

@@ -29,6 +29,9 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
+        avatarPublicId: {
+            type: String,
+        },
         password: {
             type: String,
             required: [true, 'Password is required']

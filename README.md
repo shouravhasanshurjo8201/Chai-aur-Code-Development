@@ -196,7 +196,8 @@ Returns the authenticated user's public profile.
 
 Requires authentication. Send a `multipart/form-data` request with an `avatar`
 file. The image is uploaded to Cloudinary and the authenticated user's avatar
-URL is updated. The response includes the updated public user profile.
+URL is updated. The previous Cloudinary image is deleted after the update
+succeeds. The response includes the updated public user profile.
 
 ## Data models
 
