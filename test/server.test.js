@@ -74,6 +74,7 @@ test("protected user endpoints reject requests without an access token", async (
     ["POST", "/logout"],
     ["POST", "/change-password"],
     ["GET", "/current-user"],
+    ["PATCH", "/updateuserprofileditela"],
     ["PATCH", "/avatar_update"],
   ];
 

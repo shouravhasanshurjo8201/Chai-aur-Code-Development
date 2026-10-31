@@ -6,6 +6,7 @@ import {
   logoutUser,
   changeCurrentPassword,
   getCurrentCurrentUser,
+  updateCurrentUserProfile,
   updateCurrentUserAvatar,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -21,6 +22,9 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 router.route("/current-user").get(verifyJWT, getCurrentCurrentUser);
+router
+  .route("/updateuserprofileditela")
+  .patch(verifyJWT, updateCurrentUserProfile);
 router
   .route("/avatar_update")
   .patch(verifyJWT, upload.single("avatar"), updateCurrentUserAvatar);

@@ -190,6 +190,23 @@ and updates both authentication cookies after a successful change.
 Requires a valid access-token cookie or `Authorization: Bearer <access-token>`.
 Returns the authenticated user's public profile.
 
+### Update the current user's profile
+
+`PATCH /api/v1/users/updateuserprofileditela`
+
+Requires authentication. Send a JSON object with one or more of `username`,
+`email`, and `fullName`. Usernames and email addresses are normalized to
+lowercase. The response includes the updated public user profile. A username
+or email already used by another account returns `409 Conflict`.
+
+```json
+{
+  "username": "newusername",
+  "email": "new@example.com",
+  "fullName": "New Name"
+}
+```
+
 ### Update the current user's avatar
 
 `PATCH /api/v1/users/avatar_update`

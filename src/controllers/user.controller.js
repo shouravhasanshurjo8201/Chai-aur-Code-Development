@@ -238,6 +238,76 @@ const getCurrentCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user: userData }, "Current user fetched"));
 });
 
+const updateCurrentUserProfile = asyncHandler(async (req, res) => {
+  const body = req.body;
+  const editableFields = ["username", "email", "fullName"];
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new ApiError(400, "A JSON object with profile fields is required");
+  }
+
+  const submittedFields = Object.keys(body);
+  if (
+    submittedFields.length === 0 ||
+    submittedFields.some((field) => !editableFields.includes(field))
+  ) {
+    throw new ApiError(
+      400,
+      "Provide one or more of these fields: username, email, fullName",
+    );
+  }
+
+  const updates = {};
+  for (const field of submittedFields) {
+    if (typeof body[field] !== "string" || !body[field].trim()) {
+      throw new ApiError(400, `${field} must be a non-empty string`);
+    }
+
+    updates[field] =
+      field === "fullName"
+        ? body[field].trim()
+        : body[field].trim().toLowerCase();
+  }
+
+  const duplicateConditions = ["username", "email"]
+    .filter((field) => updates[field])
+    .map((field) => ({ [field]: updates[field] }));
+
+  if (duplicateConditions.length > 0) {
+    const existingUser = await User.findOne({
+      _id: { $ne: req.user._id },
+      $or: duplicateConditions,
+    });
+
+    if (existingUser) {
+      throw new ApiError(409, "Username or email is already in use");
+    }
+  }
+
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  Object.assign(user, updates);
+  await user.save();
+
+  const userData = {
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    fullName: user.fullName,
+    avatar: user.avatar,
+    createdAt: user.createdAt,
+  };
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { user: userData }, "Profile updated successfully"),
+    );
+});
+
 const updateCurrentUserAvatar = asyncHandler(async (req, res) => {
   try {
     if (!req.file?.path) {
@@ -300,5 +370,6 @@ export {
   logoutUser,
   changeCurrentPassword,
   getCurrentCurrentUser,
+  updateCurrentUserProfile,
   updateCurrentUserAvatar,
 };
