@@ -233,6 +233,49 @@ const getCurrentCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user: userData }, "Current user fetched"));
 });
 
+const updateCurrentUserAvatar = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file?.path) {
+      throw new ApiError(400, "Avatar image is required");
+    }
+
+    const avatar = await uploadOnCloudinary(req.file.path);
+
+    if (!avatar?.secure_url) {
+      throw new ApiError(502, "Avatar upload failed");
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { avatar: avatar.secure_url } },
+      { new: true, runValidators: true },
+    );
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const userData = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+    };
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { user: userData }, "Avatar updated successfully"),
+      );
+  } finally {
+    if (req.file?.path) {
+      await rm(req.file.path, { force: true });
+    }
+  }
+});
+
 export {
   registerUser,
   refreshAccessToken,
@@ -240,4 +283,5 @@ export {
   logoutUser,
   changeCurrentPassword,
   getCurrentCurrentUser,
+  updateCurrentUserAvatar,
 };

@@ -190,6 +190,14 @@ and updates both authentication cookies after a successful change.
 Requires a valid access-token cookie or `Authorization: Bearer <access-token>`.
 Returns the authenticated user's public profile.
 
+### Update the current user's avatar
+
+`PATCH /api/v1/users/avatar_update`
+
+Requires authentication. Send a `multipart/form-data` request with an `avatar`
+file. The image is uploaded to Cloudinary and the authenticated user's avatar
+URL is updated. The response includes the updated public user profile.
+
 ## Data models
 
 - **User**: username, email, full name, avatar URL, hashed password, and stored
