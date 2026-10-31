@@ -1,8 +1,9 @@
 # Backend API
 
 Express and MongoDB backend for a video-sharing application. The current API
-supports user registration and refresh-token rotation. A video data model is
-included, but video API routes are not implemented yet.
+supports user registration, login, logout, password changes, current-user
+lookup, and refresh-token rotation. A video data model is included, but video
+API routes are not implemented yet.
 
 ## Requirements
 
@@ -141,6 +142,54 @@ For browser clients on a different origin, send requests with credentials
 enabled (for example, `credentials: "include"` in `fetch`) and configure
 `CORS_ORIGIN` to allow the frontend origin.
 
+### Log in
+
+`POST /api/v1/users/login`
+
+Send a JSON body with either `username` or `email`, and `password`:
+
+```json
+{
+  "email": "sample@example.com",
+  "password": "your-password"
+}
+```
+
+On success, the API returns the user profile and sets new HTTP-only access and
+refresh token cookies. Invalid credentials return `401 Unauthorized`.
+
+### Log out
+
+`POST /api/v1/users/logout`
+
+Requires a valid access-token cookie or `Authorization: Bearer <access-token>`.
+It removes the user's stored refresh token and clears both authentication
+cookies.
+
+### Change the current password
+
+`POST /api/v1/users/change-password`
+
+Requires authentication. Send the current password and a new password of at
+least 8 characters:
+
+```json
+{
+  "oldPassword": "your-current-password",
+  "newPassword": "your-new-password"
+}
+```
+
+The password is hashed before it is stored. The API rotates the refresh token
+and updates both authentication cookies after a successful change.
+
+### Get the current user
+
+`GET /api/v1/users/current-user`
+
+Requires a valid access-token cookie or `Authorization: Bearer <access-token>`.
+Returns the authenticated user's public profile.
+
 ## Data models
 
 - **User**: username, email, full name, avatar URL, hashed password, and stored
@@ -157,6 +206,7 @@ Run the automated smoke tests with:
 npm test
 ```
 
-The tests cover the health check, registration input validation, and cleanup
-of temporary upload files. Database and Cloudinary integration require
-credentials and are not covered by these smoke tests.
+The tests cover the health check, registration and login validation,
+authentication requirements for protected routes, refresh-token validation,
+and cleanup of temporary upload files. Database and Cloudinary integration
+require credentials and are not covered by these smoke tests.
